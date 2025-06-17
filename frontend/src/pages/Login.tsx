@@ -13,12 +13,12 @@ export default function Login() {
 
   // Redireciona automaticamente se já estiver logado
   useEffect(() => {
-    console.log(user);
+
     if (user) {
       if (user.role === "admin") {
-       // navigate("/admin/users", { replace: true });
+        navigate("/admin/users", { replace: true });
       } else {
-       // navigate("/profile", { replace: true });
+        navigate("/profile", { replace: true });
       }
     }
   }, [user, navigate]);

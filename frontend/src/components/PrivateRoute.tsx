@@ -4,8 +4,6 @@ import { useAuth } from "../contexts/AuthContext";
 export default function ProtectedLayout() {
     const { user, loading } = useAuth();
 
-    console.log('user', user);
-
     if (loading) {
         return <div>Carregando...</div>; // ou null
     }

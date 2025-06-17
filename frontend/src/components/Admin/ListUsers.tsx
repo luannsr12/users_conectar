@@ -12,8 +12,6 @@ export default function Users({
     onOpenEdit
 }) {
 
-    console.log('PORRA', users);
-
     const [expandedRow, setExpandedRow] = useState(null);
 
     const toggleRow = (name) => {

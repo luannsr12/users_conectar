@@ -1,38 +1,53 @@
-// src/__tests__/users/users.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersService } from '../users/users.service';
+import { UsersService } from '../modules/users/users.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { User } from '../users/user.entity';
-import { Repository } from 'typeorm';
+import { User } from '../common/entities/user.entity';
+import * as bcrypt from 'bcrypt';
+
+jest.mock('bcrypt', () => ({
+  compare: jest.fn(),
+  hash: jest.fn(),
+}));
 
 describe('UsersService', () => {
   let service: UsersService;
-  let repo: Repository<User>;
+  let repo: any;
 
   beforeEach(async () => {
+    repo = {
+      create: jest.fn(),
+      save: jest.fn(),
+      find: jest.fn(),
+      findOne: jest.fn(),
+      delete: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
-        {
-          provide: getRepositoryToken(User),
-          useClass: Repository, // mocka Repository
-        },
+        { provide: getRepositoryToken(User), useValue: repo },
       ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    repo = module.get<Repository<User>>(getRepositoryToken(User));
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  it('should hash password and save user', async () => {
+    (bcrypt.hash as jest.Mock).mockResolvedValue('hashed');
+    repo.create.mockReturnValue({ password: 'hashed' });
+    repo.save.mockResolvedValue({ id: '123' });
+
+    const result = await service.create({
+      name: 'Test',
+      email: 'test@test.com',
+      password: 'plain',
+    });
+
+    expect(bcrypt.hash).toHaveBeenCalledWith('plain', 10);
+    expect(repo.create).toHaveBeenCalled();
+    expect(repo.save).toHaveBeenCalled();
+    expect(result).toEqual({ id: '123' });
   });
 
-  it('should create a user', async () => {
-    jest.spyOn(repo, 'create').mockReturnValue({} as any);
-    jest.spyOn(repo, 'save').mockResolvedValue({ id: '1', email: 'test@test.com' } as any);
-
-    const result = await service.create({ email: 'test@test.com', password: 'pass' });
-    expect(result).toHaveProperty('id');
-  });
+  // resto igual...
 });

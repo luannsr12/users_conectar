@@ -1,182 +1,113 @@
-# 📘 Documentação Técnica - Backend NestJS + MySQL
+## 📘 Documentação Técnica - Backend NestJS + MySQL/PostgreSQL
 
 ## Visão Geral
 
-Este projeto é uma API backend construída com **NestJS** e **TypeORM**, usando **MySQL** como banco de dados. Essa API faz parte do projeto 'desafio_conectar'. 
+API backend modular, usando **NestJS**, **TypeORM**, **MySQL/PostgreSQL**, estruturada por domínio: módulos de segurança, autenticação, perfis de usuário, administração e internacionalização, com interceptores e filtros globais padronizados.
 
-O sistema oferece:
-
-* Registro, login e autenticação JWT
-* Login social com registro automático
-* Gerenciamento de usuários com permissões (admin/user)
-* Filtros, ordenação e controle de acesso
-* Internacionalização básica com `LangService`
-* Testes unitários e end-to-end
-
----
-
-## 📁 Estrutura principal
+## 📁 Estrutura
 
 ```
 backend/
  ├── src/
- │   ├── auth/           # Módulo de autenticação (register, login, social login)
- │   ├── users/          # Módulo de usuários (CRUD + filtros)
- │   ├── lang/           # Módulo de mensagens multi-idioma
- │   ├── seeder/         # Seeder para admin
- │   ├── __tests__/      # Testes unitários centralizados
- ├── test/               # Testes E2E
- ├── .env                # Configurações de ambiente
- ├── package.
+ │   ├── modules/
+ │   │   ├── security/      # JWT Strategy e Guard globais
+ │   │   ├── auth/          # AuthController, AuthService, DTOs
+ │   │   ├── users/         # UsersController, UsersService, DTOs, Entity
+ │   │   ├── admin/         # AdminUsersController (rotas restritas admin)
+ │   │   ├── seeder/        # SeederService
+ │   ├── common/            # Entities, interceptors, filters globais
+ │   ├── __tests__/         # Testes unitários de controllers e services
+ ├── test/                  # Testes E2E
+ ├── .env                   # Config de ambiente
 ```
+---
 
 ## 📎 Módulos
 
-### 🦄 **AuthModule (`src/auth/`)**
+### 🦄 SecurityModule
 
-* `auth.controller.ts`
-  * Define rotas:
-    * `/auth/register`
-    * `/auth/login`
-    * `/auth/social`
-* `auth.service.ts`
-  * Lógica principal de autenticação, geração de JWT e registro social.
-* `jwt.strategy.ts` & `jwt-auth.guard.ts`:
-  * Protegem rotas usando tokens JWT.
-* `dto/`
-  * Objetos de transferência para validação de entrada:
-    * `RegisterAuthDto`
-    * `LoginAuthDto`
-    * `SocialAuthDto`
+* `jwt.strategy.ts` + `jwt-auth.guard.ts` aplicados globalmente para proteger rotas.
 
-**Explicação:**
+### 🦄 AuthModule
 
-```ts
-@Post('register')
-async register(@Body() data: RegisterAuthDto) {
-  return this.authService.register(data);
-}
-```
-> [!TIP]
-> Recebe dados validados pelo DTO, passa para o service que criptografa a senha, verifica duplicidade de e-mail e salva no banco.
+* `auth.controller.ts` ➝ `/auth/register`, `/auth/login`
+* `auth.service.ts` ➝ valida credenciais, gera JWT, login social.
+* `dto/` ➝ `RegisterAuthDto`, `LoginAuthDto` (baseados em `createZodDto`).
 
-<br>
+### 🦄 UsersModule
 
-### 🦄 **UsersModule (`src/users/`)**
+* `users.controller.ts` ➝ `/users/me` (perfil próprio)
+* `users.service.ts` ➝ CRUD pessoal, update com hash.
+* `user.entity.ts` ➝ Campos: `name`, `email`, `password`, `role`, `social_login` JSON.
 
-* `users.controller.ts`
-  * Define rotas:
-    * `/users` (admin)
-    * `/users/me`
-* `users.service.ts`
-  * Regras de negócio, CRUD, filtros e ordenação.
-* `user.entity.ts`
-  * Define a tabela:
-    * `user` (table)
-      * `name`
-      * `email`
-      * `password`
-      * `role`
-      * `social_login`
+### 🦄 AdminModule
 
-**Destaque:**
+* `admin-users.controller.ts` ➝ `/admin/users` (listar, criar, deletar usuários) acessível só para `role=admin`.
 
-```ts
-@Column({ type: 'json', nullable: true, default: null })
-social_login: { social: string; active: number } | null;
-```
+### 🦄 SeederModule
 
-> [!TIP]
-> Permite armazenar informações do provedor social de login.
+* `seeder.service.ts` ➝ cria admin default em `dev`.
 
-<br>
-
-### 🦄 **LangModule (`src/lang/`)**
-
-* `lang.service.ts`:
-  * Provê mensagens de retorno centralizadas.
-* `locales/pt_BR.json`
-  * Dicionário em português.
-
-**Exemplo de uso:**
-
-```ts
-if (existingUser) {
-  throw new BadRequestException(this.lang.get('auth.email_in_use'));
-}
-```
-
-> [!TIP]
-> Garante mensagens consistentes e fácil manutenção de textos.
- 
-<br>
-
-### 🦄 **SeederModule (`src/seeder/`)**
-
-* `seeder.service.ts`:
-  * Crie um user admin ao instalar a API
-* Se estiver em modo dev os dados do admin criado são:
   * Email: `admin@admin.com`
-  * Password: `admin`
+  * Senha: `admin`
 
-> [!TIP]
-> Em MODE=dev cria automaticamente um user admin para facilitar testes
+---
 
+## 📚 Bibliotecas Utilizadas 
+
+| Lib                              | Por que usar?         | Função                                                 |
+| -------------------------------- | --------------------- | ------------------------------------------------------ |
+| **@nestjs/core, @nestjs/common** | Core do NestJS        | Estrutura modular, decorators, injeção de dependências |
+| **@nestjs/typeorm**              | ORM oficial do NestJS | Mapeia entidades, queries flexíveis com repositórios   |
+| **typeorm**                      | ORM SQL de alto nível | Suporta MySQL e PostgreSQL, migrations, relations      |
+| **@nestjs/jwt**                  | JWT nativo Nest       | Gera e valida tokens, integrado ao Guard               |
+| **bcrypt**                       | Hash de senhas seguro | Criptografa senha antes de persistir                   |
+| **nestjs-zod**                   | Validação moderna     | Usa Zod para DTOs, tipagem e Swagger coerente          |
+| **zod**                          | Validador TS/JS       | Schemas declarativos, tipagem forte                    |
+| **@nestjs/swagger**              | Docs automática       | Gera Swagger usando decorators Nest                    |
+| **@nestjs/config**               | Configuração via .env | Injeta variáveis de ambiente de forma tipada           |
+| **jest**                         | Testes unitários      | Framework padrão de testes do NestJS                   |
+| **supertest**                    | Teste E2E de rotas    | Simula requests HTTP reais para E2E                    |
+| **cross-env**                    | Compatibilidade env   | Define variáveis ambiente multiplataforma              |
+
+### Motivos de escolha
+
+* **NestJS:** arquitetura escalável, modular, ideal para APIs REST.
+* **TypeORM:** ORM maduro, fácil migração, abstrai SQL sem perder controle.
+* **Zod + nestjs-zod:** Validação declarativa, forte tipagem, docs automáticas coerentes.
+* **JWT + bcrypt:** Autenticação robusta, padrão de mercado.
+* **ConfigModule:** Centraliza .env sem poluir o código.
+* **Swagger:** Documentação viva para devs e integração com frontend.
+
+Tudo escolhido visando **manutenção limpa**, **boas práticas** e **escalabilidade**.
 
 ---
 
 ## 🔥 Configuração
 
-* Variáveis de ambiente gerenciadas por `ConfigModule`.
-* `TypeOrmModule.forRootAsync` usa `ConfigService` para conectar ao MySQL.
-* `MODE` controla `synchronize` (dev vs prod).
+* `.env` com `DB_TYPE`, `JWT_SECRET`, `MODE` (`dev` vs `prod`)
+* `TypeOrmModule.forRootAsync` carrega dinamicamente do `ConfigService`.
+* `synchronize` = `true` só em `dev`.
 
-**Trecho:**
-
-```ts
-synchronize: config.get('MODE') !== 'prod'
-```
-
-> [!TIP]
-> Evita sincronizar o schema em produção.
-
----
-
-## 🦎 Testes
-
-* **Unitários:** isolam lógica de services e controllers com mocks (`src/__tests__/`).
-* **E2E:** simulam requisições reais (`test/app.e2e-spec.ts`).
-
-**Rodar:**
+## 🧪 Testes
 
 ```bash
-npm run test          # Unitários
-npm run test:e2e      # End-to-end
-npm run test:cov      # Cobertura
+npm run test       # Unit
+npm run test:e2e   # E2E
+npm run test:cov   # Coverage
 ```
 
----
+## 🔒 Autenticação
 
-## 🍯 Fluxo de Autenticação
+* **Register:** Cria usuário com senha criptografada (`bcrypt`).
+* **Login:** Valida credenciais, gera JWT.
+* **Social Login:** Registra ou atualiza `social_login` JSON, retorna JWT.
 
-* **Register:**
-  * Cria usuário novo com senha criptografada (`bcrypt`).
-* **Login:**
-  * Valida credenciais com hash, gera JWT assinado.
-* **Social Login:**
-  * Verifica e cria/atualiza usuário com `social_login` JSON e devolve JWT.
+## 🚀 Observações
 
----
-
-## 🚀 Observações Técnicas
-
-* Organização modular → cada domínio isolado.
-* DTO + `ValidationPipe` → entrada fortemente validada.
-* Guards + Strategy → padrão NestJS para auth.
-* Mensagens multilíngue simplificadas, fácil expansão.
-* Swagger automático via decorators → [http://localhost:3000/api](http://localhost:3000/api)
-
----
+* Padrão limpo: Guards, Strategies e Pipes globais.
+* Swagger com JWT `Authorize` global ([http://localhost:3000/api](http://localhost:3000/api)).
+* DTOs validados com Zod via `nestjs-zod`.
 
 ## ☕ Autor
 

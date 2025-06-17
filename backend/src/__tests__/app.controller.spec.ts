@@ -1,23 +1,23 @@
-// src/__tests__/app.controller.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from '../app.controller';
-import { AppService } from '../app.service';
+import pkg from '../../package.json';
 
 describe('AppController', () => {
   let appController: AppController;
 
-  beforeEach(async () => {
-    const app: TestingModule = await Test.createTestingModule({
+  beforeAll(async () => {
+    const module: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [AppService],
     }).compile();
 
-    appController = app.get<AppController>(AppController);
+    appController = module.get<AppController>(AppController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
-    });
+  it('should return "API is running"', () => {
+    expect(appController.getRoot()).toEqual({ message: 'API is running' });
+  });
+
+  it('should return version info', () => {
+    expect(appController.getVersion()).toEqual({ version: pkg.version });
   });
 });

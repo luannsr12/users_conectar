@@ -54,6 +54,18 @@ body.dark input {
   @apply text-white
 }
 
+body.dark input::placeholder {
+  @apply text-gray-400
+}
+
+.btn-google {
+  @apply text-gray-700
+}
+
+body.dark .btn-google {
+  @apply text-white
+}
+
 /* === USERS PAGE === */
 
 body.dark .table-users>tbody>.row-table {

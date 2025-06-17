@@ -20,7 +20,7 @@ import Pagination from '../../components/Admin/Pagination';
 import { statusUser, sortUsers } from '../../utils/User';
 import ModalUser from "../../components/Admin/ModalUser";
 import ListUsers from "../../components/Admin/ListUsers";
-import { useApi } from "../../utils/useApi";
+import { apiHttp } from "../../utils/api";
 import { User } from "../../types/enum";
 
 const TABS = [
@@ -36,7 +36,7 @@ const TABLE_HEAD = [
     { label: "Opções", width: "w-[25%]" },
 ];
 
-export default function Users() {
+export default function AdminUsers() {
     // State management
     const [filter, setFilter] = useState<string>('all');
     const [search, setSearch] = useState<string>("");
@@ -48,7 +48,7 @@ export default function Users() {
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
     // API data
-    const { fetchUsers, loading, error } = useApi();
+    const { fetchUsers, loading, error } = apiHttp();
     const [users, setUsers] = useState<User[]>([]);
 
     // Fetch users on component mount

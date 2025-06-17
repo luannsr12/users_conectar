@@ -23,7 +23,7 @@ export default function Users({
     return (
         <>
             {users.map(({ id, name, email, role, status }) => (
-                
+
                 <React.Fragment key={id}>
                     <tr
                         key={name}
@@ -36,7 +36,7 @@ export default function Users({
                                     style={{ width: 50, borderRadius: 100 }}
                                     src={getGravatarUrl(email)}
                                     alt={name}
-                                    size="sm" placeholder={undefined} onResize={undefined} onResizeCapture={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} />
+                                    size="sm" />
 
                                 {/* Container que divide NOME + STATUS só no mobile */}
                                 <div className="flex flex-col w-full">
@@ -54,7 +54,6 @@ export default function Users({
                                     <Typography
                                         variant="small"
                                         color="blue-gray"
-                                        className="" placeholder={undefined} onResize={undefined} onResizeCapture={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}
                                     >
                                         {email}
                                     </Typography>
@@ -73,10 +72,10 @@ export default function Users({
                                     onClick={() => {
                                         onOpenEdit({ id, name, email, role });
                                     }}
-                                    className='btn-edit' placeholder={undefined} onResize={undefined} onResizeCapture={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+                                    className='btn-edit'>
                                     Editar
                                 </Button>
-                                <Button className='btn-remove' placeholder={undefined} onResize={undefined} onResizeCapture={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >
+                                <Button className='btn-remove' >
                                     Excluir
                                 </Button>
                             </div>
@@ -88,10 +87,10 @@ export default function Users({
                         <tr className="md:hidden">
                             <td colSpan={5} className="p-2 bg-gray-50 card">
                                 <div className="space-y-2 dropdown-user-option">
-                                    <Typography variant="small" placeholder={undefined} onResize={undefined} onResizeCapture={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+                                    <Typography variant="small" >
                                         <strong>Role:</strong> {role}
                                     </Typography>
-                                    <Typography variant="small" placeholder={undefined} onResize={undefined} onResizeCapture={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+                                    <Typography variant="small" >
                                         <strong>Status:</strong>{" "}
                                         <LabelStatus status={status} />
                                     </Typography>
@@ -101,10 +100,10 @@ export default function Users({
                                             onClick={() => {
                                                 onOpenEdit({ id, name, email, role });
                                             }}
-                                            className='btn-edit' placeholder={undefined} onResize={undefined} onResizeCapture={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined}>
+                                            className='btn-edit'>
                                             Editar
                                         </Button>
-                                        <Button className='btn-remove' placeholder={undefined} onResize={undefined} onResizeCapture={undefined} onPointerEnterCapture={undefined} onPointerLeaveCapture={undefined} >
+                                        <Button className='btn-remove'  >
                                             Excluir
                                         </Button>
                                     </div>

@@ -19,14 +19,14 @@ export const showError = (title = "Erro!", text = "") => {
     })
 }
 
-export const showToast = (icon = "success", title = "") => {
+export const showToast = (icon = "success", title = "", timer = 3000) => {
     return Swal.fire({
         toast: true,
         position: 'top-end',
         icon: icon,
         title: title,
         showConfirmButton: false,
-        timer: 3000,
+        timer: timer,
         timerProgressBar: true,
         customClass: {
             popup: 'bg-white shadow-lg rounded-lg p-4',

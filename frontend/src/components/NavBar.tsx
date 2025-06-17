@@ -1,11 +1,21 @@
 import { useEffect, useState } from "react";
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMoon, faSun, faBars, faTimes, faPowerOff } from "@fortawesome/free-solid-svg-icons";
+import {
+  faMoon,
+  faSun,
+  faBars,
+  faTimes,
+  faSignOut,
+  faSignIn,
+  faPowerOff,
+} from "@fortawesome/free-solid-svg-icons";
+import { useAuth } from "../contexts/AuthContext";
 
-export default function NavBar({ toggleDarkMode, darkMode }) {
+export default function NavBar({ LinksContent, toggleDarkMode, darkMode }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user, accessToken } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,10 +34,11 @@ export default function NavBar({ toggleDarkMode, darkMode }) {
             <h1 className="navbar-title">🔥 MyPanel</h1>
 
             {/* LINKS DESKTOP */}
-            <div className="navbar-links">
-              <Link className="navbar-link" to="/admin/users">Usuários</Link>
-              <Link className="navbar-link" to="/profile">Perfil</Link>
-            </div>
+            {(true) && (
+              <div className="navbar-links">
+                <LinksContent />
+              </div>
+            )}
           </div>
 
           {/* --- GROUP RIGHT: actions --- */}
@@ -44,13 +55,21 @@ export default function NavBar({ toggleDarkMode, darkMode }) {
               <FontAwesomeIcon icon={faBars} size="lg" />
             </button>
 
-            <button className="navbar-logout hidden md:block">
-              <FontAwesomeIcon icon={faPowerOff} size="sm" /> &nbsp; Sair
-            </button>
+            <div className="navbar-logout hidden md:block navbar-links">
+              {!accessToken || !user ? (
+                <Link className="navbar-link" to="/auth/login">
+                  Login <FontAwesomeIcon icon={faSignIn} size="sm" />
+                </Link>
+              ) : (
+                <Link className="navbar-link" to="/auth/logout">
+                  Sair <FontAwesomeIcon icon={faSignOut} size="sm" />
+                </Link>
+              )}
+            </div>
           </div>
+
         </div>
       </nav>
-
 
       {/* MENU MOBILE */}
       <div className={`mobile-menu card ${menuOpen ? "open" : ""}`}>
@@ -61,19 +80,14 @@ export default function NavBar({ toggleDarkMode, darkMode }) {
           </button>
         </div>
         <nav className="flex flex-col gap-3 mt-6">
-          <a className="hover:bg-gray-100 hover:text-gray-600 px-2 py-2 m-0 rounded" href="/" onClick={() => setMenuOpen(false)}>Home</a>
-          <a className="hover:bg-gray-100 hover:text-gray-600 px-2 py-2 m-0 rounded" href="/profile" onClick={() => setMenuOpen(false)}>Perfil</a>
-          <a className="hover:bg-gray-100 hover:text-gray-600 px-2 py-2 m-0 rounded" href="/settings" onClick={() => setMenuOpen(false)}>Configurações</a>
-          <button className="navbar-logout mt-6" onClick={() => setMenuOpen(false)}>
-            <FontAwesomeIcon icon={faPowerOff} size="sm" />
-            &nbsp;
-            Sair
-          </button>
+          <LinksContent onClick={() => setMenuOpen(false)} />
         </nav>
       </div>
 
       {/* BACKDROP */}
-      {menuOpen && <div className="backdrop" onClick={() => setMenuOpen(false)}></div>}
+      {menuOpen && (
+        <div className="backdrop" onClick={() => setMenuOpen(false)}></div>
+      )}
     </>
   );
 }

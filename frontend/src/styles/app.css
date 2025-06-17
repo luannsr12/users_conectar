@@ -58,6 +58,10 @@ body.dark input::placeholder {
   @apply text-gray-400
 }
 
+body.dark .navbar-link{
+  @apply text-white hover:text-blue-900
+}
+
 .btn-google {
   @apply text-gray-700
 }
@@ -441,9 +445,17 @@ body.dark .btn-add-user {
   @apply text-gray-700 font-medium hover:text-blue-600 transition;
 }
 
-.navbar-logout {
+.navbar-logout:not(.navbar-links) {
   @apply px-4 py-2 text-white rounded font-semibold hover:bg-red-700 transition;
   background-color: crimson;
+  border-radius: 8px;
+  gap: 5px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.navbar-login:not(.navbar-links) {
+  @apply px-4 py-2 bg-purple-700 text-white rounded font-semibold hover:bg-red-700 transition;
   border-radius: 8px;
   gap: 5px;
   align-items: center;

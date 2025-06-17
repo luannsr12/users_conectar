@@ -80,3 +80,19 @@ export function sortUsers(users, field = "createdAt", direction = "asc") {
 
     return sorted;
 }
+
+export function getPasswordStrength(password: string): { score: number; label: string } {
+    let score = 0;
+
+    if (password.length >= 8) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[\W_]/.test(password)) score++;
+
+    let label = "Fraca";
+    if (score >= 4) label = "Forte";
+    else if (score === 3) label = "Média";
+
+    return { score, label };
+}

@@ -1,85 +1,68 @@
-// utils/useApi.ts
-import { useState } from "react";
-import { api } from "./requestInstance";
-import { useAuth } from "../contexts/AuthContext";
+// utils/requestInstance.ts
+import axios, { AxiosInstance } from "axios";
+import { AccessToken } from "../types/enum";
 
-export function useApi() {
-    const { login: setLoginAuth, accessToken, logout } = useAuth();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+const API_URL = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
 
-    async function login(email: string, password: string): Promise<string> {
-        setLoading(true);
-        setError(null);
-        try {
-            if (!email.trim() || !password.trim()) {
-                throw new Error("Preencha todos os campos");
-            }
+export type Method = "GET" | "POST" | "PATCH" | "PUT" | "DELETE" | "UPLOAD";
 
-            const response = await api.post(
-                "/auth/login",
-                { email, password },
-                { headers: { "Content-Type": "application/json" } }
-            );
+export const api = (token: string | null = null) => {
+    const client: AxiosInstance = axios.create({
+        baseURL: API_URL,
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
 
-            const { success, access_token } = response.data || {};
-            if (!success || !access_token) {
-                throw new Error("Dados de login inválidos");
-            }
-
-            setLoginAuth(access_token);
-            return access_token;
-
-        } catch (err: any) {
-            const msg = err.response?.data?.message || err.message || "Erro inesperado";
-            setError(msg);
-            throw new Error(msg);
-        } finally {
-            setLoading(false);
-        }
+    if (token?.trim()) {
+        client.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
 
-    /**
-     * Busca usuários da API admin/users com filtro de role, sort e order.
-     * @param {object} params
-     * @param {string} params.role - "admin" | "user" | undefined
-     * @param {string} params.sortBy - "name" | "createdAt"
-     * @param {string} params.order - "asc" | "desc"
-     */
-    async function fetchUsers({
-        role,
-        sortBy = "name",
-        order = "asc",
-    }: {
-        role?: string;
-        sortBy?: "name" | "createdAt";
-        order?: "asc" | "desc";
-    } = {}) {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await api.get("/admin/users", {
-                params: { role, sortBy, order },
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
-              });
-            return response.data; // deve ser lista de usuários já filtrada
-        } catch (err: any) {
+    return {
+        async request(
+            method: Method,
+            path: string,
+            payload?: any,
+            context?: { headers?: Record<string, string>; token?: string }
+        ) {
+            try {
+                if (context?.headers) {
+                    Object.entries(context.headers).forEach(([key, value]) => {
+                        client.defaults.headers.common[key] = value;
+                    });
+                }
 
-            const status = err.response?.status;
-            if (status === 401 || status === 403) {
-                logout();
-                return;
+                switch (method) {
+                    case "GET":
+                        return (await client.get(path, { params: payload }))?.data;
+                    case "POST":
+                        return (await client.post(path, payload))?.data;
+                    case "PATCH":
+                        return (await client.patch(path, payload))?.data;
+                    case "PUT":
+                        return (await client.put(path, payload))?.data;
+                    case "DELETE":
+                        return (await client.delete(path, { data: payload }))?.data;
+                    case "UPLOAD":
+                        if (payload instanceof FormData) {
+                            return (
+                                await client.post(path, payload, {
+                                    headers: { "Content-Type": "multipart/form-data" },
+                                })
+                            )?.data;
+                        }
+                        throw new Error("UPLOAD requer FormData");
+                    default:
+                        throw new Error(`Método não suportado: ${method}`);
+                }
+            } catch (error) {
+                console.error(`Erro [${method} ${path}]`, error);
+                return null;
             }
+        },
+    };
+};
 
-            const msg = err.response?.data?.message || err.message || "Erro inesperado";
-            setError(msg);
-            throw new Error(msg);
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    return { login, fetchUsers, loading, error };
-}
+export const client = (token: AccessToken | null) => {
+    return api(token);
+};

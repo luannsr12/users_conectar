@@ -1,3 +1,3 @@
 // src/pages/(admin)/index.js
 
-export { default as Users } from './Users';
+export { default as AdminUsers } from './AdminUsers';

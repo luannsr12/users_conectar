@@ -27,7 +27,7 @@ export class UsersService {
     async findOne(id: string) {
         const user = await this.usersRepository.findOne({
             where: { id },
-            select: ['id', 'name', 'email', 'role', 'last_login', 'createdAt', 'updatedAt'],
+            select: ['id', 'name', 'email', 'password', 'role', 'last_login', 'createdAt', 'updatedAt'],
         });
         if (!user) {
             throw new NotFoundException('Usuário não localizado');
@@ -43,8 +43,12 @@ export class UsersService {
     }
 
     async findByEmail(email: string) {
-        return this.usersRepository.findOne({ where: { email } });
+        return this.usersRepository.findOne({
+            where: { email },
+            select: ['id', 'name', 'email', 'password', 'role', 'last_login', 'createdAt', 'updatedAt'],
+        });
     }
+    
 
     async update(id: string, data: Partial<User>) {
         const user = await this.usersRepository.findOne({ where: { id } });

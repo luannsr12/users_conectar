@@ -1,6 +1,36 @@
-// src/pages/index.js
+/**
+ * @file src/pages/index.js
+ * @description Centraliza exportações das páginas principais da aplicação.
+ * @project Desafio Conéctar
+ * 
+ * @author Luan Alves
+ * @github https://github.com/luannsr12
+ * @license MIT
+ * @created 2025-06-17
+ */
 
-export { default as Login } from './Login';
-//export { default as Register } from './Register';
-export { default as Profile } from './(user)/Profile';
-//export { default as AdminUsers } from './AdminUsers';
+//////////////////////////////
+// Authentication pages     //
+//////////////////////////////
+
+export {
+    Register,
+    Login,
+    Logout
+} from './(auth)';
+
+//////////////////////////////
+// User regular pages       //
+//////////////////////////////
+
+export {
+    Profile
+} from './(user)';
+
+//////////////////////////////
+// Administration pages     //
+//////////////////////////////
+
+export {
+    AdminUsers
+} from './(admin)';

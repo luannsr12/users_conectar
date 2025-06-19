@@ -5,6 +5,8 @@ import { CliModule } from './cli/cli.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import pkg from '../package.json';
+import crypto from 'crypto';
+(global as any).crypto = crypto;
 
 import { AppModule } from './app.module';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';

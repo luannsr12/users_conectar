@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { User } from '../../common/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
@@ -50,19 +50,38 @@ export class UsersService {
     }
     
 
-    async update(id: string, data: Partial<User>) {
-        const user = await this.usersRepository.findOne({ where: { id } });
+    async update(userId: string, data: Partial<User>): Promise<User> {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+
         if (!user) {
             throw new NotFoundException('Usuário não localizado');
         }
 
-        if (data.password) {
-            data.password = await bcrypt.hash(data.password, 10);
+        if (data.email) {
+            const conflict = await this.usersRepository.findOne({ where: { email: data.email } });
+            if (conflict && conflict.id !== userId) {
+                throw new BadRequestException('Email já está em uso por outro usuário');
+            }
+        }
+
+        if(data.password){
+            const hash = await bcrypt.hash(data.password, 10);
+            data.password = hash;
         }
 
         Object.assign(user, data);
-        return this.usersRepository.save(user);
+        user.updatedAt = new Date();
+
+        const isUpdate = await this.usersRepository.save(user);
+
+        if (!isUpdate){
+            throw new BadRequestException('Não foi possível atualizar seus dados no momento.');
+        }
+
+        return isUpdate;
+
     }
+      
 
     async remove(id: string) {
         const result = await this.usersRepository.delete(id);

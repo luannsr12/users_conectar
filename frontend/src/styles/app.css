@@ -8,6 +8,10 @@
   --primary: #2563eb;
 }
 
+#root{
+  @apply w-full
+}
+
 body>div[class*="grid"][class*="fixed"][class*="place-items-center"] {
   background-color: rgba(0, 0, 0, 0.3) !important;
   backdrop-filter: none !important;
@@ -42,6 +46,10 @@ body.dark h2 {
   @apply text-white
 }
 
+body.dark h3 {
+  @apply text-white
+}
+
 body.dark p {
   @apply text-gray-400
 }
@@ -58,7 +66,7 @@ body.dark input::placeholder {
   @apply text-gray-400
 }
 
-body.dark .navbar-link{
+body.dark .navbar-link {
   @apply text-white hover:text-blue-900
 }
 
@@ -124,6 +132,10 @@ body.dark .table-users>tbody>tr>td {
   font-size: 14px;
   cursor: pointer;
   @apply hover:opacity-90;
+}
+
+.nav-link{
+  @apply text-white pl-3
 }
 
 body.dark .order-select {
@@ -288,7 +300,7 @@ body.dark .btn-add-user {
   .options-table {
     flex-direction: column;
     /* mobile: um embaixo do outro */
-    align-items: stretch;
+    align-items: start;
     /* opcional: estica filhos na largura toda */
     justify-content: end;
   }
@@ -298,9 +310,18 @@ body.dark .btn-add-user {
     position: relative;
   }
 
+    .profile-name { 
+      font-size: 16px!important;
+    }
+
+    .profile-bio{
+      font-size: 14px !important;
+    }
+
   .tabs-filter {
     float: right;
     right: 0px;
+    width: 100%;
   }
 }
 
@@ -374,7 +395,8 @@ body.dark .btn-add-user {
 }
 
 .btn-picture-profile {
-  @apply hover:bg-purple-500 cursor-pointer bg-purple-900;
+  @apply hover:bg-purple-500 cursor-pointer;
+  background-color: oklch(0.54 0.25 272.71);
   height: 35px;
   width: 35px;
   text-align: center;
@@ -386,6 +408,34 @@ body.dark .btn-add-user {
   position: absolute;
   bottom: 10%;
   right: 0;
+}
+
+.input-order {
+  display: flex;
+  align-items: start;
+  flex-wrap: wrap;
+  flex-direction: column-reverse;
+  justify-content: space-between;
+}
+
+.input-order label {
+  padding: 7px;
+  background-color: #070b14;
+  height: 40px;
+  width: 30px;
+  display: inline-flex;
+  border-radius: 5px 0px 0px 5px;
+  align-items: center;
+  right: -2px;
+  position: relative;
+}
+
+.input-order label svg {
+  height: 14px;
+}
+
+.input-order small {
+  padding-left: 2px;
 }
 
 /* Mobile spacing fix */

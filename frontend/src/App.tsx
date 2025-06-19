@@ -1,19 +1,26 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import NavBar from "./components/NavBar";
-import { routes } from './routesConfig';
-import { useState, useEffect } from "react";
-
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { useThemeStore } from "./stores/useThemeStore";
-
+import { routes } from './routesConfig';
 import AdminProvider from "./contexts/AdminProvider";
-import PrivateProvider from "./contexts/PrivateProvider";
-import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedLayout from "./contexts/PrivateProvider";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import RegularUserProvider from "./contexts/RegularUserProvider";
-import { useAuthStore } from "./stores/useAuthStore";
+import PhoneMockup from "./components/mockup/mobile";
+import FloatingButtonProps from "./components/mockup/button";
+import { useMockup } from "./stores/useMockup";
+
+// Função para detectar se está dentro de um iframe
+const isInsideIframe = () => {
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+};
 
 export default function App() {
-
-  const { darkMode, toggleDarkMode } = useThemeStore();
+  const { darkMode } = useThemeStore();
 
   useEffect(() => {
     document.body.classList.toggle("dark", darkMode);
@@ -22,56 +29,69 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppContent toggleDarkMode={toggleDarkMode} darkMode={darkMode} />
+        <AppContent />
       </AuthProvider>
     </BrowserRouter>
   );
 }
 
-function AppContent({ toggleDarkMode, darkMode }: { toggleDarkMode: () => void; darkMode: boolean }) {
+function AppContent() {
+  const { darkMode } = useThemeStore();
+  const { isMobile, toggleIsMobile } = useMockup();
+  const location = useLocation();
+
+  const isInIframe = isInsideIframe();
 
   return (
-    <>
+    <main className={`min-h-screen w-full mx-auto ${darkMode ? "dark" : ""}`}>
+      <div className={"mx-auto md:w-[95%] w-[90%]" + (!isMobile ? "" : "")}>
 
-      <main className={`min-h-screen w-full sm:w-[600px] md:w-[800px] lg:w-[1000px] xl:w-[1200px] mx-auto ${darkMode ? "dark" : ""}`}>
-        <div className="w-full px-4">
-          <Routes>
+        {!isInIframe && (
+          <>
+            <FloatingButtonProps onClick={toggleIsMobile} />
 
-            {/* Rotas públicas */}
-            {routes.filter(r => r.isPublic).map(({ path, element: Element }) => (
-              <Route key={path} path={path} element={<Element />} />
-            ))}
-          </Routes>
+            {isMobile && (
+              <div className="fixed bottom-4 right-4 z-50 w-[300px] h-[600px]">
+                <PhoneMockup src={location.pathname} />
+              </div>
+            )}
+          </>
+        )}
 
-          {/* Rotas privadas */}
+        <Routes>
+          {renderPublicRoutes()}
+          <Route element={<ProtectedLayout />}>
+            {renderPrivateRoutes()}
+            {renderAdminRoutes()}
+          </Route>
+        </Routes>
+      </div>
+    </main>
+  );
+}
 
-          <PrivateProvider >
-            <Routes>
-           
-                {/* Rotas admin dentro de um Route com AdminProvider */}
-                <Route element={<AdminProvider />}>
-                  {routes
-                    .filter(r => !r.isPublic && r.path.startsWith("/admin"))
-                    .map(({ path, element: Element }) => (
-                      <Route key={path} path={path} element={<Element />} />
-                    ))}
-                </Route>
+function renderPublicRoutes() {
+  return routes.public.map(({ path, element: Element }) => (
+    <Route key={path} path={path} element={<Element />} />
+  ));
+}
 
-                {/* Rotas privadas que não são admin */}
-                <Route element={<RegularUserProvider />}>
-                  {routes
-                    .filter(r => !r.isPublic && !r.path.startsWith('/admin'))
-                    .map(({ path, element: Element }) => (
-                      <Route key={path} path={path} element={<Element />} />
-                    ))}
-                </Route>
-               
-            </Routes>
+function renderPrivateRoutes() {
+  return (
+    <Route element={<RegularUserProvider />}>
+      {routes.private.map(({ path, element: Element }) => (
+        <Route key={path} path={path} element={<Element />} />
+      ))}
+    </Route>
+  );
+}
 
-          </PrivateProvider>
-
-        </div>
-      </main>
-    </>
+function renderAdminRoutes() {
+  return (
+    <Route element={<AdminProvider />}>
+      {routes.admin.map(({ path, element: Element }) => (
+        <Route key={path} path={path} element={<Element />} />
+      ))}
+    </Route>
   );
 }

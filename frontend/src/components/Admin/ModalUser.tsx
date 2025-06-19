@@ -7,7 +7,28 @@ import {
     DialogPanel,
     DialogTitle
 } from '@headlessui/react'
+import {
+    ContextUpdate,
+    ContextRegister,
+    UserRegister,
+    User,
+    AuthState,
+    Password,
+    UpdateProfile
+} from '../../types/enum'
 import { showToast } from '../../utils/swal'
+import { apiHttp } from '../../utils/api'
+import { MomentMessage, useMessageStore } from '../../stores/useMessageStore'
+import { useAuthStore } from '../../stores/useAuthStore'
+
+type ModalProps = {
+    open: boolean,
+    onClose: () => void;
+    onAddUser: (user: User) => void;
+    onEditUser: (user: User) => void;
+    existingUsers: User[],
+    user: User | null | undefined
+}
 
 export default function ModalUser({
     open,
@@ -15,13 +36,18 @@ export default function ModalUser({
     onAddUser,
     onEditUser,
     existingUsers,
-    user // se receber user -> modo edição
-}) {
-    const [name, setName] = useState("")
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [confirmPassword, setConfirmPassword] = useState("")
-    const [error, setError] = useState("")
+    user
+}: ModalProps) {
+    const { setMessage } = useMessageStore()
+    const { user: userLogged } = useAuthStore() as AuthState
+    const { update, register, loading } = apiHttp()
+    const [loadingForm, setLoadingForm] = useState<boolean>(false)
+    const [name, setName] = useState<User["name"]>("")
+    const [role, setRole] = useState<User["role"]>("user")
+    const [email, setEmail] = useState<User["email"]>("")
+    const [password, setPassword] = useState<Password>("")
+    const [confirm_password, setConfirmPassword] = useState<Password>("")
+    const [error, setError] = useState<string | null>("")
 
     // Preenche campos se for editar
     useEffect(() => {
@@ -41,74 +67,103 @@ export default function ModalUser({
         setError("")
     }
 
-    const validateEmail = (email) =>
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
-    const handleSubmit = () => {
-        if (!name.trim()) {
-            showToast("error", "Nome é obrigatório.");
-            return;
-        }
-        if (!validateEmail(email)) {
-            showToast("error", "Email inválido.");
-            return;
-        }
-        // Evitar email duplicado em outro user
-        if (existingUsers.some(u => u.email === email && (!user || u.id !== user.id))) {
-            showToast("error", "Email já existe.");
-            return;
-        }
+    const handleSubmit = async () => {
 
-        // 🟢 Lógica da senha:
-        if (!user) {
-            // Modo Adicionar: senha é obrigatória
-            if (password.length < 4) {
-                showToast("error", "Senha muito curta.");
+        if (loading || loadingForm || !user) return;
+
+        setLoadingForm(true);
+
+        try {
+
+            // Evitar email duplicado em outro user
+            if (existingUsers.some(u => u.email === email && (!user || u.id !== user.id))) {
+                showToast("error", "Email já existe.");
                 return;
             }
-            if (password !== confirmPassword) {
-                showToast("error", "Senhas não conferem.");
-                return;
-            }
-        } else {
-            // Modo Editar: valida só se foi digitada
-            if (password) {
-                if (password.length < 4) {
-                    showToast("error", "Senha muito curta.");
-                    return;
-                }
-                if (password !== confirmPassword) {
-                    showToast("error", "Senhas não conferem.");
-                    return;
-                }
-            }
-        }
 
-        if (user) {
-            // Edição
-            const updatedUser = {
-                ...user,
-                name,
-                email,
-                ...(password && { password }), // só atualiza se foi digitada
-                updatedAt: new Date().toISOString(),
-            };
-            onEditUser(updatedUser);
-            showToast("success", "Usuário editado com sucesso!");
-        } else {
-            // Criação
-            const newUser = {
-                id: Date.now(),
-                name,
-                email,
-                role: "user",
-                password,
-                last_login: null,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            };
-            onAddUser(newUser);
-            showToast("success", "Usuário adicionado com sucesso!");
+            let response;
+
+            if (user) {
+
+                const contextUpdate: ContextUpdate = {
+                    origin: "table",
+                    userRequest: {
+                        id: userLogged?.id ?? '',
+                        role: userLogged?.role ?? 'user'
+                    },
+                    userId: user?.id ?? ''
+                };
+
+                response = await update({
+                    name,
+                    email,
+                    password,
+                    confirm_password,
+                    role: user?.role
+                } as UpdateProfile, contextUpdate);
+
+            } else {
+
+                const contextRegister: ContextRegister = {
+                    origin: "table",
+                    userRequest: {
+                        id: userLogged?.id ?? '',
+                        role: userLogged?.role ?? 'user'
+                    }
+                };
+
+                response = await register({
+                    name,
+                    email,
+                    password,
+                    confirm_password,
+                    role: role ?? 'user'
+                } as UserRegister, contextRegister);
+
+            }
+
+            if (response?.success) {
+
+                const userData = { ...response };
+                delete userData.success;
+
+                if (user) {
+                    // Edição
+
+                    onEditUser(userData);
+
+                    setMessage({
+                        'type': 'success',
+                        'message': "Usuário editado com sucesso!"
+                    } as MomentMessage);
+
+                } else {
+                    // Criação
+
+                    const newUser: User = userData;
+
+                    onAddUser(newUser);
+
+                    setMessage({
+                        'type': 'success',
+                        'message': "Usuário criado com sucesso!"
+                    } as MomentMessage);
+                }
+            } else {
+                setMessage({
+                    'type': 'error',
+                    'message': `${response?.message || 'Desculpe, tente novamente mais tarde'}`
+                } as MomentMessage);
+            }
+
+        } catch (err) {
+            setMessage({
+                'type': 'error',
+                'message': `${err || 'Desculpe, tente novamente mais tarde'}`
+            } as MomentMessage);
+        } finally {
+            setLoadingForm(false);
         }
 
         resetForm();
@@ -165,7 +220,6 @@ export default function ModalUser({
                                 <input
                                     type="password"
                                     className="w-full rounded border border-gray-300 p-2 focus:border-blue-500 focus:outline-none"
-                                    value={password}
                                     onChange={e => setPassword(e.target.value)}
                                     placeholder="******"
                                 />
@@ -178,7 +232,6 @@ export default function ModalUser({
                                 <input
                                     type="password"
                                     className="w-full rounded border border-gray-300 p-2 focus:border-blue-500 focus:outline-none"
-                                    value={confirmPassword}
                                     onChange={e => setConfirmPassword(e.target.value)}
                                     placeholder="******"
                                 />
@@ -197,16 +250,20 @@ export default function ModalUser({
                                 resetForm()
                                 onClose()
                             }}
-                            className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                            className="cursor-pointer rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                         >
-                            Cancelar
+                            Fechar
                         </button>
+                        
                         <button
                             type="button"
                             onClick={handleSubmit}
-                            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                            className="cursor-pointer rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                         >
-                            {user ? "Salvar Alterações" : "Adicionar"}
+                            {loadingForm
+                                ? (user ? "Salvando..." : "Adicionando...")
+                                : (user ? "Salvar Alterações" : "Adicionar")}
+                            
                         </button>
                     </div>
                 </DialogPanel>

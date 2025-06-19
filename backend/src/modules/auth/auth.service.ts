@@ -8,7 +8,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   async validateUser(email: string, password: string) {
     const user = await this.usersService.findByEmail(email);
@@ -19,15 +19,29 @@ export class AuthService {
   }
 
   async login(data: { email: string; password: string }) {
-      
     const user = await this.validateUser(data.email, data.password);
     if (!user) {
       throw new UnauthorizedException('Dados inválidos');
     }
 
-    const payload = { sub: user.id, name: user.name, email: user.email, role: user.role };
-    return { access_token: this.jwtService.sign(payload) };
+    // Atualiza o last_login para agora
+    await this.usersService.update(user.id, { last_login: new Date() });
+
+
+    const payload = {
+      sub: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      updatedAt: user.updatedAt,
+      createdAt: user.createdAt
+    };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
   }
+
 
   async register(data: { name: string; email: string; password?: string }) {
     // 1. Garante que a senha foi enviada
@@ -49,7 +63,7 @@ export class AuthService {
         password: data.password,
       });
 
-      if (isRegister){
+      if (isRegister) {
         return { message: 'Cadastro realizado com sucesso!' };
       }
 

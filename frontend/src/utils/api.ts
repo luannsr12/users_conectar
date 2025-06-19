@@ -1,9 +1,10 @@
 // utils/api.ts
-import { useState } from "react";
+import { Context, useState } from "react";
 import { client } from "./useApi";
 import { useAuthStore } from "../stores/useAuthStore";
 import { useNavigate } from "react-router-dom";
-import { UpdateProfile } from "../types/enum";
+import { ContextRegister, ContextUpdate, UpdateProfile, User, UserRegister } from "../types/enum";
+import { validadeForm } from "../utils/User";
 
 export function apiHttp() {
     const setLogin = useAuthStore((state) => state.setLogin);
@@ -17,8 +18,9 @@ export function apiHttp() {
         setLoading(true);
         setError(null);
         try {
-            if (!email.trim() || !password.trim()) {
-                throw new Error("Preencha todos os campos");
+            const validation = validadeForm('login', { email, password });
+            if (!validation.valid) {
+                throw new Error(Object.values(validation.errors).join('\n'));
             }
 
             const response = await client(null).request(
@@ -27,167 +29,206 @@ export function apiHttp() {
                 { email, password }
             );
 
-            const { success, access_token } = response || {};
-            if (!success || !access_token) {
-                throw new Error("Dados de login inválidos");
+            const { access_token } = response || {};
+            if (!access_token) {
+                throw new Error("Credenciais inválidas");
             }
 
             setLogin(access_token);
             return access_token;
 
         } catch (err: any) {
-
-            let msg = err.response?.message || err.message || "Erro inesperado";
-
-            if (Array.isArray(msg)) {
-                msg = msg.join('\n');
-            }
-
-            if (typeof msg !== 'string') {
-                msg = String(msg);
-            }
-
+            const msg = err.response?.data?.message || err.message || "Erro inesperado";
             setError(msg);
-            throw new Error(msg);
-
+            throw err;
         } finally {
             setLoading(false);
         }
     }
 
-    async function update(user: UpdateProfile): Promise<boolean> {
+    async function update(user: UpdateProfile, context: ContextUpdate | null = null): Promise<any> {
         setLoading(true);
         setError(null);
 
-        const { name, email, password, confirm_password } = user;
-
         try {
-            // Validação campos não vazios
-            if (![name, email].every(field => field.trim())) {
-                throw new Error("Campos de nome e email são obrigatórios.");
+
+
+            let path = "/users/me";
+
+            if (!context) throw new Error("Desculpe, tente novamente.");
+
+            switch (context?.origin) {
+                case 'table':
+                    if (context?.userRequest?.role !== 'admin') throw new Error("Acesse seu perfil para fazer alterações.");
+                    path = `/admin/users/update/${context?.userId ?? 'undefined'}`;
+                    break;
+                case 'profile':
+                    if (context?.userRequest?.id !== context?.userId) throw new Error("Erro ao atualizar seus dados");
+                    break;
+                default:
+                    break;
             }
 
-            // Nome precisa ter pelo menos duas palavras
-            if (name.trim().split(/\s+/).length < 2) {
-                throw new Error("Informe nome e sobrenome");
+            
+            const validation = validadeForm('update', user);
+            if (!validation.valid) {
+                throw new Error(Object.values(validation.errors).join('\n'));
             }
 
-            // Validação simples de email
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                throw new Error("Email inválido");
+            const fullName = user.surname
+                ? `${user.name} ${user.surname}`
+                : user.name;
+
+            const dataUpdate: Record<string, any> = {
+                name: fullName,
+                email: user.email
+            };
+
+            if (user.password && user.password.trim()) {
+                dataUpdate.password = user.password;
             }
 
-            if (password && confirm_password) {
-                // Senha com pelo menos 8 caracteres, uma letra maiúscula, uma minúscula, um número e um caractere especial
-                const passwordRegex = /^(?=.*\d).{6,}$/;
-                if (!passwordRegex.test(password)) {
-                    throw new Error("A senha deve ter pelo menos 6 caracteres e conter ao menos um número");
-                }
-
-                // Confirmação de senha
-                if (password !== confirm_password) {
-                    throw new Error("As senhas não coincidem");
-                }
-            }
-
-            let dataUpdate = {
-                name,
-                email,
-                ...(password ? { password } : {}),
-            }
-
-            // Chamada API
             const response = await client(accessToken).request(
                 'PATCH',
-                "/users/me",
+                `${path}`,
                 dataUpdate
             );
 
-            const { success } = response || {};
-            if (!success) {
-                throw new Error("Falha no registro");
+            if (!response?.success) {
+                throw new Error(response?.message || "Falha na atualização");
             }
 
-            return true;
+            return response;
 
         } catch (err: any) {
-            const msg = err.response?.message || err.message || "Erro inesperado";
+            const msg = err.response?.data?.message || err.message || "Erro na atualização";
             setError(msg);
-            throw new Error(msg);
+
+            if (err.response?.data) {
+                return err.response?.data;
+            }
+
+            return {
+                success: false,
+                message: err.message || "Erro desconhecido",
+            };
+
         } finally {
             setLoading(false);
         }
     }
 
-    async function register(
-        name: string,
-        email: string,
-        password: string,
-        confirm_password: string
-    ): Promise<boolean> {
+    async function removeUser(id: User["id"], context: Pick<User, "id" | "role">){
         setLoading(true);
         setError(null);
 
         try {
-            // Validação campos não vazios
-            if (![name, email, password, confirm_password].every(field => field.trim())) {
-                throw new Error("Preencha todos os campos");
-            }
 
-            // Nome precisa ter pelo menos duas palavras
-            if (name.trim().split(/\s+/).length < 2) {
-                throw new Error("Informe nome e sobrenome");
-            }
+            if (!context) throw new Error("Desculpe, tente novamente.");
 
-            // Validação simples de email
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                throw new Error("Email inválido");
+            if(id !== context?.id){
+                if (context?.role !== 'admin') throw new Error("Você não pode executar essa função.");
             }
-
-            // Senha com pelo menos 8 caracteres, uma letra maiúscula, uma minúscula, um número e um caractere especial
-            const passwordRegex = /^(?=.*\d).{6,}$/;
-            if (!passwordRegex.test(password)) {
-                throw new Error("A senha deve ter pelo menos 6 caracteres e conter ao menos um número");
-            }
-
-            // Confirmação de senha
-            if (password !== confirm_password) {
-                throw new Error("As senhas não coincidem");
-            }
-
-            // Chamada API
-            const response = await client(null).request(
-                'POST',
-                '/auth/register',
-                { name, email, password }
+  
+            const response = await client(accessToken).request(
+                'DELETE',
+                `/admin/users/${id}`,
+                {}
             );
 
-            const { success } = response.data || {};
-            if (!success) {
-                throw new Error("Falha no registro");
+            if (!response?.success) {
+                throw new Error(response?.message || "Falha na requisição");
             }
 
-            return true;
+            return response;
 
         } catch (err: any) {
-            const msg = err.response?.message || err.message || "Erro inesperado";
+            const msg = err.response?.data?.message || err.message || "Erro na atualização";
             setError(msg);
-            throw new Error(msg);
+
+            if (err.response?.data) {
+                return err.response?.data;
+            }
+
+            return {
+                success: false,
+                message: err.message || "Erro desconhecido",
+            };
+
         } finally {
             setLoading(false);
         }
     }
 
+    async function register({
+        name,
+        email,
+        password,
+        confirm_password,
+        role = 'user'
+    }: UserRegister,
+        context: ContextRegister | null = null
+    ): Promise<any> {
+        setLoading(true);
+        setError(null);
 
-    /**
-     * Busca usuários da API admin/users com filtro de role, sort e order.
-     * @param {object} params
-     * @param {string} params.role - "admin" | "user" | undefined
-     * @param {string} params.sortBy - "name" | "createdAt"
-     * @param {string} params.order - "asc" | "desc"
-     */
+        try {
+
+            let path = "/auth/register";
+
+            if (!context) throw new Error("Desculpe, tente novamente.");
+
+            switch (context?.origin) {
+                case 'table':
+                    if (context?.userRequest?.role !== 'admin') throw new Error("Desculpe, você não tem permissões necessárias.");
+                    path = '/admin/users/create';
+                    break;
+                default:
+                    break;
+            }
+
+
+            const validation = validadeForm('register', {
+                name,
+                email,
+                password,
+                confirm_password
+            });
+
+            if (!validation.valid) {
+                throw new Error(Object.values(validation.errors).join('\n'));
+            }
+
+            const response = await client(null).request(
+                'POST',
+                `${path}`,
+                { name, email, password }
+            );
+
+            if (!response.success) {
+                throw new Error(response.message || "Falha no registro");
+            }
+
+            return response;
+
+        } catch (err: any) {
+            const msg = err.response?.data?.message || err.message || "Erro na atualização";
+            setError(msg);
+
+            if (err.response?.data) {
+                return err.response?.data;
+            }
+
+            return {
+                success: false,
+                message: err.message || "Erro desconhecido",
+            };
+
+        } finally {
+            setLoading(false);
+        }
+    }
+
     async function fetchUsers({
         role,
         sortBy = "name",
@@ -199,6 +240,7 @@ export function apiHttp() {
     } = {}) {
         setLoading(true);
         setError(null);
+
         try {
             const response = await client(accessToken).request(
                 'GET',
@@ -206,24 +248,31 @@ export function apiHttp() {
                 { role, sortBy, order }
             );
 
-            return response; // deve ser lista de usuários já filtrada
+            return response || [];
 
         } catch (err: any) {
-
             const status = err.response?.status;
             if (status === 401 || status === 403) {
-                //logout();
-                // navigate('/login', { replace: true });
-                return null;
+                logout();
+                navigate('/login', { replace: true });
             }
 
-            const msg = err.response?.data?.message || err.message || "Erro inesperado";
+            const msg = err.response?.data?.message || err.message || "Erro ao buscar usuários";
             setError(msg);
-            throw new Error(msg);
+            throw err;
         } finally {
             setLoading(false);
         }
     }
 
-    return { login, register, update, fetchUsers, loading, setError, error };
+    return {
+        login,
+        register,
+        update,
+        removeUser,
+        fetchUsers,
+        loading,
+        error,
+        setError
+    };
 }

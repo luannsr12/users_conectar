@@ -16,7 +16,7 @@ export class AuthController {
 
     @Post('login')
     @ApiBody({ type: LoginAuthDto })
-    login(@Body() dto: LoginAuthDto) {
-        return this.authService.login(dto);
+    login(@Body() data: LoginAuthDto) {
+        return this.authService.login(data);
     }
 }

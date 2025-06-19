@@ -31,7 +31,7 @@ export default function NavBar({ LinksContent, toggleDarkMode, darkMode }) {
         <div className="navbar-container">
           {/* --- GROUP LEFT: logo + links --- */}
           <div className="flex items-center gap-8">
-            <h1 className="navbar-title">🔥 MyPanel</h1>
+            <h1 className="navbar-title">Conéctar</h1>
 
             {/* LINKS DESKTOP */}
             {(true) && (
@@ -81,6 +81,16 @@ export default function NavBar({ LinksContent, toggleDarkMode, darkMode }) {
         </div>
         <nav className="flex flex-col gap-3 mt-6">
           <LinksContent onClick={() => setMenuOpen(false)} />
+
+          {!accessToken || !user ? (
+            <Link className="mt-10 navbar-link nav-link" to="/auth/login">
+              Login <FontAwesomeIcon icon={faSignIn} size="sm" />
+            </Link>
+          ) : (
+              <Link className="mt-10 bg-red-800 pt-2 pb-2 pl-1 rounded nav-link" to="/auth/logout">
+                <FontAwesomeIcon icon={faPowerOff} size="sm" /> Sair 
+             </Link>
+          )}
         </nav>
       </div>
 

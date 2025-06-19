@@ -61,13 +61,13 @@ export default function Login() {
       }
      
     } catch (err) {
-      console.error(err);
+      //console.error(err);
     }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="card bg-white shadow-md rounded px-8 py-6 w-full max-w-md">
+      <div className="card bg-white shadow-md rounded px-8 py-6 w-[90%] max-w-md">
         <h2 className="text-2xl font-bold mb-3">Login</h2>
 
         <form className="space-y-4" onSubmit={handleSubmit}>

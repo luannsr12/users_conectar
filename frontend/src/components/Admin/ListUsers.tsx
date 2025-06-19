@@ -5,13 +5,15 @@ import {
     Button
 } from "@material-tailwind/react";
 import LabelStatus from './LabelStatus'
-import { getGravatarUrl } from '../../utils/User'
+import { useAuthStore } from "../../stores/useAuthStore";
+import Gravatar from 'react-gravatar'
 
 export default function Users({
     users,
-    onOpenEdit
+    onOpenEdit,
+    onConfirmDelete
 }) {
-
+    const { user } = useAuthStore();
     const [expandedRow, setExpandedRow] = useState(null);
 
     const toggleRow = (name) => {
@@ -32,17 +34,27 @@ export default function Users({
                         {/* User cell, clickable */}
                         <td className="p-4 cursor-pointer w-full" onClick={() => toggleRow(name)}>
                             <div className="flex items-center gap-3 w-full">
-                                <Avatar
-                                    style={{ width: 50, borderRadius: 100 }}
-                                    src={getGravatarUrl(email)}
-                                    alt={name}
-                                    size="sm" />
+
+                                <Gravatar
+                                    email={email}
+                                    size={50}
+                                    style={{ width: 50, height: 50, borderRadius: 100 }}
+                                    rating="pg"
+                                    default="monsterid"
+                                />
 
                                 {/* Container que divide NOME + STATUS só no mobile */}
                                 <div className="flex flex-col w-full">
                                     <div className="flex justify-between items-center w-full">
                                         <span className="text-sm font-medium text-blue-gray-900">
                                             {name}
+                                            {user?.id === id && (
+                                                <span
+                                                    style={{ fontStyle: 'italic', marginLeft: 3, fontSize: 14, fontWeight: 600, color: '#608795' }}
+                                                >
+                                                    (Sou eu)
+                                                </span>
+                                            )}
                                         </span>
 
                                         {/* Status só no mobile */}
@@ -54,6 +66,7 @@ export default function Users({
                                     <Typography
                                         variant="small"
                                         color="blue-gray"
+                                        className="text-xs"
                                     >
                                         {email}
                                     </Typography>
@@ -68,16 +81,26 @@ export default function Users({
                         </td>
                         <td className="td-buttons hidden md:table-cell m-0">
                             <div className='group-buttons-table'>
-                                <Button
-                                    onClick={() => {
-                                        onOpenEdit({ id, name, email, role });
-                                    }}
-                                    className='btn-edit'>
-                                    Editar
-                                </Button>
-                                <Button className='btn-remove' >
-                                    Excluir
-                                </Button>
+                                {user?.id !== id && (
+                                    <>
+                                        <Button
+                                            onClick={() => {
+                                                onOpenEdit({ id, name, email, role });
+                                            }}
+                                            className='btn-edit'
+                                        >
+                                            Editar
+                                        </Button>
+                                        <Button
+                                            onClick={() => {
+                                                onConfirmDelete(id);
+                                            }}
+                                            className='btn-remove'
+                                        >
+                                            Excluir
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </td>
                     </tr>
@@ -96,16 +119,26 @@ export default function Users({
                                     </Typography>
 
                                     <div className='group-buttons-table'>
-                                        <Button
-                                            onClick={() => {
-                                                onOpenEdit({ id, name, email, role });
-                                            }}
-                                            className='btn-edit'>
-                                            Editar
-                                        </Button>
-                                        <Button className='btn-remove'  >
-                                            Excluir
-                                        </Button>
+                                        {user?.id !== id && (
+                                            <>
+                                                <Button
+                                                    onClick={() => {
+                                                        onOpenEdit({ id, name, email, role });
+                                                    }}
+                                                    className='btn-edit'
+                                                >
+                                                    Editar
+                                                </Button>
+                                                <Button
+                                                    onClick={() => {
+                                                        onConfirmDelete(id);
+                                                    }}
+                                                    className='btn-remove'
+                                                >
+                                                    Excluir
+                                                </Button>
+                                            </>
+                                        )}
                                     </div>
 
                                 </div>

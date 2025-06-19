@@ -9,11 +9,15 @@ import {
     Query,
     ForbiddenException,
     UseGuards,
+    Patch,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiBody, ApiQuery, ApiOperation } from '@nestjs/swagger';
 import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { ZodValidationPipe } from '../../common/pipe/zod-validation.pipe';
 import { CreateUserDto, CreateUserSwaggerDto } from './dto/admin.dto';
+import { UpdateUserSwaggerDto } from '../users/dto/user.dto';
+import { UpdateUserSchema } from '../../common/schema/user.schema';
 
 @ApiTags('Admin Users')
 @ApiBearerAuth('access-token')
@@ -30,6 +34,17 @@ export class AdminUsersController {
             throw new ForbiddenException('Access denied');
         }
         return this.usersService.create(data);
+    }
+
+
+    @Patch('update/:id')
+    @ApiOperation({ summary: 'Atualiza informações de um usuário' })
+    @ApiBody({ type: UpdateUserSwaggerDto })
+    updateMe(@Request() req, @Param('id') id: string, @Body(new ZodValidationPipe(UpdateUserSchema)) data: any) {
+        if (req.user.role !== 'admin') {
+            throw new ForbiddenException('Access denied');
+        }
+        return this.usersService.update(id, data);
     }
 
     @Get()

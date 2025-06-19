@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const auth  = useAuthStore();
+    const auth = useAuthStore();
     const { setMessage, momentMessage, clearMessage } = useMessageStore();
 
     useEffect(() => {

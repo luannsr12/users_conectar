@@ -30,9 +30,9 @@ export default function LabelStatus({ status }) {
 
     return (
         <span
-            className={`label-status inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs font-semibold ${data.bg} ${data.text}`}
+            className={`label-status inline-flex items-center gap-2 px-1 py-1 text-xs rounded-full text-xs font-semibold ${data.bg} ${data.text}`}
         >
-            <span className={`w-2 h-2 rounded-full ${data.dot}`} />
+            <span className={`w-2 h-2 text-xs rounded-full ${data.dot}`} />
             {data.label}
         </span>
     );

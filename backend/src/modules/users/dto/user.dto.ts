@@ -7,7 +7,6 @@ import { CreateUserSchema, UpdateUserSchema } from '../../../common/schema/user.
 export class CreateUserDto extends createZodDto(CreateUserSchema) { }
 export class UpdateUserDto extends createZodDto(UpdateUserSchema) { }
 
-
 export class UpdateUserSwaggerDto {
     @ApiPropertyOptional({ example: 'Daenerys Targaryen' })
     name?: string;

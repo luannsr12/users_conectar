@@ -20,14 +20,32 @@ export const useAuthStore = create<AuthState>()(
                     name: payload.name,
                     email: payload.email,
                     role: payload.role,
+                    updatedAt: payload.updatedAt,
+                    createdAt: payload.createdAt,
                 };
                 set({ user, accessToken: token, isSignIn: true});
                 localStorage.setItem("access_token", token);
             },
+            setName: (name: string) => {
+                set((state) => ({
+                    user: {
+                        ...(state.user ?? {}),
+                        name,
+                    },
+                }) as Partial<AuthState>);
+            },
+            setEmail: (email: string) => {
+                set((state) => ({
+                    user: {
+                        ...(state.user ?? {}),
+                        email,
+                    },
+                }) as Partial<AuthState>);
+            },
             logout: () => {
                 set({ user: null, accessToken: null, isSignIn: false });
-               // alert('logout');
                 localStorage.removeItem("access_token");
+                localStorage.removeItem("auth-storage");
             },
         }),
         {

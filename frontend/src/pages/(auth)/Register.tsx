@@ -5,6 +5,7 @@ import GoogleLoginButton from "../../components/GoogleLoginButton";
 import { Link, useNavigate } from "react-router-dom";
 import { useMessageStore, MomentMessage } from "../../stores/useMessageStore";
 import { showToast } from "../../utils/swal";
+import { ContextRegister, UserRegister } from "../../types/enum";
 
 export default function Register() {
     const navigate = useNavigate();
@@ -13,7 +14,7 @@ export default function Register() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
+    const [confirm_password, setConfirmPassword] = useState("");
 
     const { score, label } = getPasswordStrength(password);
     const strengthColor =
@@ -25,13 +26,29 @@ export default function Register() {
         e.preventDefault();
 
         try {
-            const success = await register(name, email, password, confirmPassword);
+
+            const dataRegister: UserRegister = {
+                name,
+                email,
+                role: "user",
+                password,
+                confirm_password
+            };
+
+            const contextRegister: ContextRegister = {
+                origin: "auth",
+                userRequest: null,
+            };
+
+            const success = await register( dataRegister, contextRegister);
+
             if (success) {
                 setMessage({
                     'type': 'success',
                     'message': "Conta criada com sucesso! Acesse sua conta."
                 } as MomentMessage);
                 navigate("/auth/login");
+                return;
             }
 
             throw Error('Desculpe, não foi possível criar sua conta no momento.');
@@ -42,8 +59,8 @@ export default function Register() {
     }
 
     useEffect(() => {
-        if(typeof error === 'string'){
-            if (error.trim().length > 0){
+        if (typeof error === 'string') {
+            if (error.trim().length > 0) {
                 showToast('error', `${error}`, 5000);
                 setTimeout(() => {
                     setError(null);
@@ -86,9 +103,9 @@ export default function Register() {
                     />
 
                     {password && (
-                        <div 
-                        style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', position: 'relative'}}
-                        className="">
+                        <div
+                            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
+                            className="">
                             <div className="h-2 w-full bg-gray-200 rounded">
                                 <div
                                     className={`font-medium h-3 pl-2 rounded ${strengthTextColor} ${strengthColor}`}
@@ -104,7 +121,7 @@ export default function Register() {
                     <input
                         type="password"
                         placeholder="Confirmar senha"
-                        value={confirmPassword}
+                        value={confirm_password}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         className="w-full border px-3 py-2 rounded"
                         required

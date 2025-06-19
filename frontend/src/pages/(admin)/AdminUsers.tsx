@@ -14,7 +14,7 @@ import {
     Tab,
 } from "@material-tailwind/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUserPlus, faSort } from "@fortawesome/free-solid-svg-icons";
+import { faUserPlus, faSort, faFilter } from "@fortawesome/free-solid-svg-icons";
 import { useState, useEffect, useMemo } from "react";
 import Pagination from '../../components/Admin/Pagination';
 import { statusUser, sortUsers } from '../../utils/User';
@@ -22,6 +22,9 @@ import ModalUser from "../../components/Admin/ModalUser";
 import ListUsers from "../../components/Admin/ListUsers";
 import { apiHttp } from "../../utils/api";
 import { User } from "../../types/enum";
+import { closeToast, showConfirm, showLoadingToast } from "../../utils/swal";
+import { useAuthStore } from "../../stores/useAuthStore";
+import { MomentMessage, useMessageStore } from '../../stores/useMessageStore'
 
 const TABS = [
     { label: "All", value: "all" },
@@ -38,6 +41,7 @@ const TABLE_HEAD = [
 
 export default function AdminUsers() {
     // State management
+    const { user } = useAuthStore();
     const [filter, setFilter] = useState<string>('all');
     const [search, setSearch] = useState<string>("");
     const [orderField, setOrderField] = useState<string>("");
@@ -46,15 +50,18 @@ export default function AdminUsers() {
     const [rowsPerPage, setRowsPerPage] = useState<number>(10);
     const [showAddModal, setShowAddModal] = useState<boolean>(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [statusFilter, setStatusFilter] = useState("all");
+    const { setMessage } = useMessageStore()
 
     // API data
-    const { fetchUsers, loading, error } = apiHttp();
+    const { removeUser, fetchUsers, loading, error } = apiHttp();
     const [users, setUsers] = useState<User[]>([]);
 
     // Fetch users on component mount
     useEffect(() => {
         const loadUsers = async () => {
             try {
+
                 const { success, ...usersData } = await fetchUsers();
                 const usersArray = success ? Object.values(usersData) as User[] : [];
                 setUsers(usersArray);
@@ -67,20 +74,28 @@ export default function AdminUsers() {
         loadUsers();
     }, []);
 
+    useEffect(() => {
+        if (loading) {
+            showLoadingToast();
+        } else {
+            closeToast();
+        }
+    }, [loading]);
+
     // Process users data with useMemo for optimization
     const { paginatedUsers, totalPages, totalUsers } = useMemo(() => {
-        // Add status to users
         const usersWithStatus = users.length > 0 ? statusUser(users) : [];
 
-        // Apply filters
         let filteredUsers = usersWithStatus.filter(user =>
-            (user.name.toLowerCase().includes(search.toLowerCase()) ||
+            (
+                user.name.toLowerCase().includes(search.toLowerCase()) ||
                 user.email.toLowerCase().includes(search.toLowerCase()) ||
-                user.role.toLowerCase().includes(search.toLowerCase())) &&
-            (filter === "all" || user.role.toLowerCase() === filter.toLowerCase())
+                user.role.toLowerCase().includes(search.toLowerCase())
+            ) &&
+            (filter === "all" || user.role.toLowerCase() === filter.toLowerCase()) &&
+            (statusFilter === "all" || user.status?.toLowerCase() === statusFilter.toLowerCase())
         );
 
-        // Apply sorting
         filteredUsers = orderField
             ? sortUsers(filteredUsers, orderField, orderDirection)
             : filteredUsers.sort((a, b) => {
@@ -89,7 +104,6 @@ export default function AdminUsers() {
                 return 0;
             });
 
-        // Pagination
         const totalItems = filteredUsers.length;
         const totalPages = Math.ceil(totalItems / rowsPerPage);
         const paginatedUsers = filteredUsers.slice(
@@ -98,7 +112,8 @@ export default function AdminUsers() {
         );
 
         return { paginatedUsers, totalPages, totalUsers: totalItems };
-    }, [users, search, filter, orderField, orderDirection, currentPage, rowsPerPage]);
+    }, [users, search, filter, statusFilter, orderField, orderDirection, currentPage, rowsPerPage]);
+
 
     // Reset to first page when filters change
     useEffect(() => {
@@ -114,13 +129,66 @@ export default function AdminUsers() {
         setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
     };
 
+    const handleConfirmDelete = async (id: string) => {
+
+        if (loading) return;
+
+        try {
+
+
+            const result = await showConfirm("Deseja deletar?", "Essa ação é permanente.");
+
+            if (result.isConfirmed) {
+                const response = await removeUser(id, {
+                    id: user?.id ?? '',
+                    role: user?.role ?? 'user'
+                });
+
+
+                if (!response?.success) {
+
+                    setMessage({
+                        'type': 'error',
+                        'message': response?.message || "Erro ao deletar usuário!"
+                    } as MomentMessage);
+
+
+                } else {
+
+                    setUsers(prev => prev.filter(u => u.id !== id));
+
+                    setMessage({
+                        'type': 'success',
+                        'message': "Usuário deletado com sucesso!"
+                    } as MomentMessage);
+                }
+
+
+            }
+
+            return;
+
+
+        } catch (error) {
+
+            setMessage({
+                'type': 'error',
+                'message': `${error || 'Desculpe, tente novamente mais tarde'}`
+            } as MomentMessage);
+
+        } finally {
+
+        }
+
+    }
+
     const handleSortChange = (value: string) => {
         const [field, direction] = value.split("-");
         setOrderField(field || "");
         setOrderDirection(direction || "asc");
     };
 
-    if (loading) return <div>Loading users...</div>;
+
     if (error) return <div>Error loading users: {error}</div>;
 
 
@@ -165,16 +233,9 @@ export default function AdminUsers() {
                     {/* Filtros: Tabs + Busca + Ordenação */}
                     <div className="card options-table gap-4">
                         {/* Tabs de filtro de role */}
-                        <div className="fitlers">
+                        <div className="fitlers w-full">
                             <div className="tabs-filter relative w-max bg-gray-200 p-1 rounded-lg overflow-hidden">
-                                {/* Slider animado */}
-                                <span
-                                    className="slider absolute w-[90px] rounded-lg bg-white shadow transition-transform duration-300"
-                                    style={{
-                                        transform: `translateX(${TABS.findIndex(tab => tab.value === filter) * 100}%)`,
-                                    }}
-                                ></span>
-
+                    
                                 {/* Lista de Tabs */}
                                 <Tabs value={filter}>
                                     <TabsHeader className="relative z-20 flex bg-transparent p-0">
@@ -183,7 +244,7 @@ export default function AdminUsers() {
                                                 key={value}
                                                 value={value}
                                                 onClick={() => setFilter(value)}
-                                                className="tab-opt relative z-10 w-[90px] h-[35px] text-center flex items-center justify-center cursor-pointer"
+                                                className="tab-opt relative z-10 w-[90px] sm:w-[70px] h-[35px] text-center flex items-center justify-center cursor-pointer"
                                             >
                                                 {label}
                                             </Tab>
@@ -209,32 +270,61 @@ export default function AdminUsers() {
                         </div>
                     </div>
 
-                    {/* Select de ordenação */}
-                    <div className="input-order">
-                        <label htmlFor="order" className="mr-2">
-                            <FontAwesomeIcon icon={faSort} />
-                        </label>
-                        <select
-                            id="order"
-                            value={`${orderField}-${orderDirection}`}
-                            onChange={(e) => {
-                                const [field, direction] = e.target.value.split("-");
-                                setOrderField(field || "");
-                                setOrderDirection(direction || "asc");
-                            }}
-                            className="order-select p-1"
-                        >
-                            <option value="">Sem ordenação</option>
-                            <option value="createdAt-desc">Data de cadastro (Mais recente primeiro)</option>
-                            <option value="createdAt-asc">Data de cadastro (Mais antigo primeiro)</option>
-                            <option value="name-asc">Nome A-Z</option>
-                            <option value="name-desc">Nome Z-A</option>
-                        </select>
+                    <div className="block md:flex flex-wrap content-start gap-5" >
+                        {/* Select de ordenação */}
+                        <div className="input-order">
+                            <div className="flex">
+                                <label htmlFor="order">
+                                    <FontAwesomeIcon icon={faSort} />
+                                </label>
+                                <select
+                                    id="order"
+                                    value={`${orderField}-${orderDirection}`}
+                                    onChange={(e) => {
+                                        const [field, direction] = e.target.value.split("-");
+                                        setOrderField(field || "");
+                                        setOrderDirection(direction || "asc");
+                                    }}
+                                    className="order-select p-1"
+                                >
+                                    <option value="">Sem ordenação</option>
+                                    <option value="createdAt-desc">Data de cadastro (Mais recente primeiro)</option>
+                                    <option value="createdAt-asc">Data de cadastro (Mais antigo primeiro)</option>
+                                    <option value="name-asc">Nome A-Z</option>
+                                    <option value="name-desc">Nome Z-A</option>
+                                </select>
+                            </div>
+                            <small>Ordenar</small>
+                        </div>
+
+                        {/* Select status */}
+                        <div className="input-order">
+                            <div className="flex">
+                                <label htmlFor="status">
+                                    <FontAwesomeIcon icon={faFilter} />
+                                </label>
+                                <select
+                                    id="status"
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    className="order-select p-1"
+                                >
+                                    <option value="all">Todos</option>
+                                    <option value="inactive">Inativo</option>
+                                    <option value="active">Ativo</option>
+                                    <option value="online">Online</option>
+                                    <option value="offline">Offline</option>
+                                </select>
+                            </div>
+                            <small>Filtar por status</small>
+                        </div>
+
                     </div>
+
                 </CardHeader>
 
                 {/* Corpo da tabela */}
-                <CardBody className="relative flex flex-col w-full h-full">
+                <CardBody className="relative p-0 flex flex-col w-full h-full">
                     <table className="table-users w-full table-fixed text-left text-gray-700 shadow-md rounded-xl bg-clip-border">
                         <thead className="hidden md:table-header-group">
                             <tr>
@@ -255,6 +345,9 @@ export default function AdminUsers() {
                         <tbody className="shadow-md">
                             <ListUsers
                                 users={paginatedUsers}
+                                onConfirmDelete={(id) => {
+                                    handleConfirmDelete(id);
+                                }}
                                 onOpenEdit={(user) => {
                                     setSelectedUser(user);
                                     setShowAddModal(true);
@@ -265,8 +358,8 @@ export default function AdminUsers() {
                 </CardBody>
 
                 {/* Rodapé com paginação e rowsPerPage */}
-                <CardFooter className="flex items-center justify-between p-4">
-                    <div>
+                <CardFooter className="flex-row flex-col-reverse sm:flex-row items-center justify-between p-4">
+                    <div className="relative grid justify-start sm:flex sm:justify-between">
                         <Typography variant="small" color="blue-gray" className="font-normal">
                             Página {currentPage} de {totalPages || 1}
                         </Typography>

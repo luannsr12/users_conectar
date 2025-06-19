@@ -11,6 +11,11 @@ export const UserSchema = z.object({
 });
 
 export const RegisterSchema = UserSchema.omit({ id: true, role: true });
-export const CreateUserSchema = UserSchema.omit({ id: true }); // admin pode setar `role`
+
+export const CreateUserSchema = UserSchema.omit({ id: true });
+
 export const LoginSchema = RegisterSchema.pick({ email: true, password: true });
-export const UpdateUserSchema = RegisterSchema.partial();
+
+export const UpdateUserSchema = UserSchema.omit({ id: true, role: true }).extend({
+    password: z.string().min(6).optional(),
+});

@@ -1,27 +1,48 @@
-import { RouteConfig } from './types/enum'
-
+// ./routesConfig.ts
 import {
     Login,
     Logout,
     Register,
     Profile,
-    AdminUsers
+    AdminUsers,
 } from './pages';
+import { RouteConfig } from './types/enum';
 
-export const routes: RouteConfig[] = [
+/**
+ * Configuração centralizada de rotas da aplicação
+ * 
+ * Organiza as rotas em três categorias principais:
+ * - Públicas: Acessíveis sem autenticação
+ * - Privadas: Requerem autenticação do usuário
+ * - Admin: Requerem privilégios administrativos
+ * 
+ * Estrutura padrão para cada rota:
+ * @property {string} path - Caminho da URL
+ * @property {React.ComponentType} element - Componente React a ser renderizado
+ */
+export const routes: RouteConfig = {
+    /**
+     * Rotas públicas - Acessíveis por qualquer usuário
+     */
+    public: [
+        { path: '/', element: Login },
+        { path: '/auth/login', element: Login },
+        { path: '/auth/logout', element: Logout },
+        { path: '/auth/register', element: Register },
+    ],
 
-    //Paginas de acesso publico
-    { path: '/', element: Login, isPublic: true },
-    { path: '/auth/login', element: Login, isPublic: true },
-    { path: '/auth/logout', element: Logout, isPublic: true },
-    { path: '/auth/register', element: Register, isPublic: true },
+    /**
+     * Rotas privadas - Requerem autenticação básica
+     */
+    private: [
+        { path: '/user/profile', element: Profile },
+    ],
 
-
-    //Paginas de acesso restrito
-    { path: '/user/profile', element: Profile, isPublic: false },
-
-    // Paginas administrativa
-    { path: '/admin/users', element: AdminUsers, isPublic: false },
-    { path: '/admin/profile', element: Profile, isPublic: false },
-    
-];
+    /**
+     * Rotas administrativas - Requerem role de admin
+     */
+    admin: [
+        { path: '/admin/users', element: AdminUsers },
+        { path: '/admin/profile', element: Profile },
+    ],
+};

@@ -1,10 +1,10 @@
 // utils/requestInstance.ts
 import axios, { AxiosInstance } from "axios";
-import { AccessToken } from "../types/enum";
+import { AccessToken, ApiTypes } from "../types/enum";
 
 const API_URL = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
 
-export type Method = "GET" | "POST" | "PATCH" | "PUT" | "DELETE" | "UPLOAD";
+export type Method = ApiTypes["methods"];
 
 export const api = (token: string | null = null) => {
     const client: AxiosInstance = axios.create({
@@ -56,8 +56,13 @@ export const api = (token: string | null = null) => {
                         throw new Error(`Método não suportado: ${method}`);
                 }
             } catch (error) {
-                console.error(`Erro [${method} ${path}]`, error);
-                return null;
+                if (error.response?.data) {
+                    return error.response.data;
+                }
+                return {
+                    success: false,
+                    message: error.message || "Erro desconhecido",
+                };
             }
         },
     };

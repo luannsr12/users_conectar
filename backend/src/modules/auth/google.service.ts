@@ -31,6 +31,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
             user = await this.usersService.create({
                 email: profile.emails?.[0]?.value,
                 name: profile.displayName,
+                password: Date.now().toString(),
                 social_login: JSON.stringify({ plataform: 'google', active: true, id: profile.id }),
             });
         }

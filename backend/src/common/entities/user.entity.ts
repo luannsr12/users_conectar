@@ -17,7 +17,7 @@ export class User {
     @Column()
     email: string;
 
-    @Column({ select: false })
+    @Column({ nullable: true, select: false })
     password: string;
 
     @Column({ default: 'user' })
@@ -27,7 +27,7 @@ export class User {
     last_login: Date | null;
 
     @Column({ type: 'json', nullable: true, default: null })
-    social_login: { social: string; active: number } | null;
+    social_login: string | null;
 
     @CreateDateColumn()
     createdAt: Date;

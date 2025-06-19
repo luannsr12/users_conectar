@@ -3,6 +3,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
+import { GoogleStrategy } from '../../modules/auth//google.service'
 import { UsersModule } from '../../modules/users/users.module'
 
 @Module({
@@ -17,7 +18,7 @@ import { UsersModule } from '../../modules/users/users.module'
             }),
         }),
     ],
-    providers: [JwtStrategy],
-    exports: [JwtModule, JwtStrategy],
+    providers: [JwtStrategy, GoogleStrategy],
+    exports: [JwtModule, JwtStrategy, GoogleStrategy],
 })
 export class SecurityModule { }

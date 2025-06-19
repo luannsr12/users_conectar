@@ -28,7 +28,7 @@ npm install
 CREATE DATABASE conectar_db;
 
 # .env exemplo
-BACKEND_ADDRESS=localhost
+IP_ADDRESS=localhost
 BACKEND_PORT=3000
 MODE=dev
 DB_TYPE=mysql

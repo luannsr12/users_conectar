@@ -27,7 +27,6 @@ export class AuthService {
     // Atualiza o last_login para agora
     await this.usersService.update(user.id, { last_login: new Date() });
 
-
     const payload = {
       sub: user.id,
       name: user.name,

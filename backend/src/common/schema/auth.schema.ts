@@ -14,5 +14,5 @@ export const RegisterAuthSchema = z.object({
 export const SocialAuthSchema = z.object({
     email: z.string().email({ message: 'Email inválido' }),
     name: z.string({ required_error: 'O nome é obrigatório' }),
-    social: z.string({ required_error: 'Campo social é obrigatório' }),
+    social_login: z.string({ required_error: 'Campo social é obrigatório' }),
 });

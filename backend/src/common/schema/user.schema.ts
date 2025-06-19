@@ -7,7 +7,7 @@ export const UserSchema = z.object({
     email: z.string().email(),
     password: z.string().min(6),
     role: z.enum(['admin', 'user']).optional(),
-    social: z.string().optional(),
+    social_login: z.string().optional(),
 });
 
 export const RegisterSchema = UserSchema.omit({ id: true, role: true });

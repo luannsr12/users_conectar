@@ -12,7 +12,7 @@ export class UsersService {
     ) { }
 
     async create(data: Partial<User>) {
-        const hash = await bcrypt.hash(data.password, 10);
+        const hash = data.password ? await bcrypt.hash(data.password, 10) : null;
         const user = this.usersRepository.create({
             ...data,
             password: hash,

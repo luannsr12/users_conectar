@@ -1,4 +1,6 @@
 // utils/requestInstance.ts
+/// <reference types="vite/client" />
+
 import axios, { AxiosInstance } from "axios";
 import { AccessToken, ApiTypes } from "../types/enum";
 

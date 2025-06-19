@@ -34,7 +34,7 @@ export default function NavBar({ LinksContent, toggleDarkMode, darkMode }) {
             <h1 className="navbar-title">Conéctar</h1>
 
             {/* LINKS DESKTOP */}
-            {(true) && (
+            {true && (
               <div className="navbar-links">
                 <LinksContent />
               </div>

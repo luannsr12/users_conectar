@@ -53,7 +53,7 @@ async function bootstrap() {
 
   // Porta + endereço do .env ou fallback
   const port = process.env.BACKEND_PORT || 3000;
-  const address = process.env.BACKEND_ADDRESS || 'localhost';
+  const address = process.env.IP_ADDRESS || 'localhost';
 
   await app.listen(port);
   console.log(`🚀 Server running on http://${address}:${port}`);

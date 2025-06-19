@@ -8,15 +8,21 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     base: '/',
     define: {
-      'process.env.NODE_ENV': JSON.stringify(mode), // define apenas o necessário
+      'process.env.NODE_ENV': JSON.stringify(mode),
     },
     server: {
       port: Number(env.VITE_PORT) || 5173,
       host: env.VITE_HOST === 'true',
+      allowedHosts: [
+        'fabulous-laughter-production-e256.up.railway.app',
+      ],
     },
     preview: {
       port: Number(env.VITE_PORT) || 4173,
       host: env.VITE_HOST === 'true',
+      allowedHosts: [
+        'all',
+      ],
     },
   };
 });

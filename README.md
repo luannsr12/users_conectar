@@ -3,6 +3,8 @@
 **Conéctar Panel** é um sistema fullstack (frontend React + backend Node/NestJS) desenvolvido com foco em performance, escalabilidade e arquitetura limpa. Utiliza Vite no frontend e integração JWT + OAuth2 (Google) na autenticação, com comunicação API REST entre front e back.
 
 -   [Panel Demo live](https://fabulous-laughter-production-e256.up.railway.app)
+    -  ✉️ admin@admin.com
+    -  🔑 admin
 -   [API Swagger Docs](https://usersconectar-production.up.railway.app/api)
 
 --- 
@@ -51,6 +53,7 @@
 - [x] Testes Automatizados
 - [x] Tela de Login
 - [x] Tela de Cadastro
+- [x] Login com Google
 - [x] Tela de Listagem de Usuários (admin)
 - [x] Interface Responsiva
 - [x] Escalabilidade

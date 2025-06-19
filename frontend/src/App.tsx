@@ -51,7 +51,7 @@ function AppContent() {
             <FloatingButtonProps onClick={toggleIsMobile} />
 
             {isMobile && (
-              <div className="fixed bottom-4 right-4 z-50 w-[300px] h-[600px]">
+              <div className="fixed bottom-4 right-4 z-50 w-[300px] h-[500px]">
                 <PhoneMockup src={location.pathname} />
               </div>
             )}

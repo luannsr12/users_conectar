@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from '../modules/auth/auth.controller';
 import { AuthService } from '../modules/auth/auth.service';
+import { ConfigService } from '@nestjs/config';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -15,6 +16,16 @@ describe('AuthController', () => {
           useValue: {
             register: jest.fn().mockResolvedValue({ success: true }),
             login: jest.fn().mockResolvedValue({ access_token: 'fake-token' }),
+          },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              if (key === 'JWT_SECRET') return 'test-secret';
+              if (key === 'JWT_EXPIRES_IN') return '3600s';
+              return null;
+            }),
           },
         },
       ],

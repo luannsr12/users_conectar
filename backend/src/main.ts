@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { CommandFactory } from 'nest-commander';
 import { CliModule } from './cli/cli.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 import pkg from '../package.json';
 
 import { AppModule } from './app.module';
@@ -12,10 +13,11 @@ import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // CORS liberado
+  // Pega o configService depois do app ser criado
+  const configService = app.get(ConfigService);
+
   app.enableCors();
 
-  // Pipes de validação global (Zod + class-validator coerentes)
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -24,13 +26,9 @@ async function bootstrap() {
     }),
   );
 
-  // Interceptor para padronizar resposta
   app.useGlobalInterceptors(new ResponseInterceptor());
-
-  // Filter para erros padronizados
   app.useGlobalFilters(new AllExceptionsFilter());
 
-  // Swagger com JWT Authorize global (nome bate com @ApiBearerAuth)
   const config = new DocumentBuilder()
     .setTitle('Conectar API')
     .setDescription('API para gerenciamento de usuários')
@@ -44,16 +42,16 @@ async function bootstrap() {
         description: 'Informe seu token JWT',
         in: 'header',
       },
-      'access-token', // Nome padronizado: @ApiBearerAuth('access-token')
+      'access-token',
     )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  // Porta + endereço do .env ou fallback
-  const port = process.env.BACKEND_PORT || 3000;
-  const address = process.env.IP_ADDRESS || 'localhost';
+  // Usa as variáveis do .env via ConfigService
+  const port = configService.get<number>('BACKEND_PORT') || 3000;
+  const address = configService.get<string>('IP_ADDRESS') || 'localhost';
 
   await app.listen(port);
   console.log(`🚀 Server running on http://${address}:${port}`);

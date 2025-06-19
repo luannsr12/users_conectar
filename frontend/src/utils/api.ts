@@ -132,7 +132,7 @@ export function apiHttp() {
   
             const response = await client(accessToken).request(
                 'DELETE',
-                `/admin/users/${id}`,
+                `/admin/users/delete/${id}`,
                 {}
             );
 
@@ -244,7 +244,7 @@ export function apiHttp() {
         try {
             const response = await client(accessToken).request(
                 'GET',
-                '/admin/users',
+                '/admin/users/list',
                 { role, sortBy, order }
             );
 

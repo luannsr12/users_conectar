@@ -4,22 +4,6 @@
 
 API backend modular, usando **NestJS**, **TypeORM**, **MySQL/PostgreSQL**, estruturada por domínio: módulos de segurança, autenticação, perfis de usuário, administração e internacionalização, com interceptores e filtros globais padronizados.
 
-## 📁 Estrutura
-
-```
-backend/
- ├── src/
- │   ├── modules/
- │   │   ├── security/      # JWT Strategy e Guard globais
- │   │   ├── auth/          # AuthController, AuthService, DTOs
- │   │   ├── users/         # UsersController, UsersService, DTOs, Entity
- │   │   ├── admin/         # AdminUsersController (rotas restritas admin)
- │   │   ├── seeder/        # SeederService
- │   ├── common/            # Entities, interceptors, filters globais
- │   ├── __tests__/         # Testes unitários de controllers e services
- ├── test/                  # Testes E2E
- ├── .env                   # Config de ambiente
-```
 ---
 
 ## 📎 Módulos
@@ -43,13 +27,6 @@ backend/
 ### 🦄 AdminModule
 
 * `admin-users.controller.ts` ➝ `/admin/users` (listar, criar, deletar usuários) acessível só para `role=admin`.
-
-### 🦄 SeederModule
-
-* `seeder.service.ts` ➝ cria admin default em `dev`.
-
-  * Email: `admin@admin.com`
-  * Senha: `admin`
 
 ---
 
@@ -93,8 +70,6 @@ Tudo escolhido visando **manutenção limpa**, **boas práticas** e **escalabili
 
 ```bash
 npm run test       # Unit
-npm run test:e2e   # E2E
-npm run test:cov   # Coverage
 ```
 
 ## 🔒 Autenticação

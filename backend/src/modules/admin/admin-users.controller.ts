@@ -47,7 +47,7 @@ export class AdminUsersController {
         return this.usersService.update(id, data);
     }
 
-    @Get()
+    @Get('list')
     @ApiOperation({ summary: 'Listagem de users' })
     @ApiQuery({ name: 'role', required: false })
     async findAll(
@@ -60,7 +60,7 @@ export class AdminUsersController {
         return this.usersService.findAll();
     }
 
-    @Delete(':id')
+    @Delete('delete/:id')
     @ApiOperation({ summary: 'Deletar um user pelo id' })
     async remove(@Request() req, @Param('id') id: string) {
         if (req.user.role !== 'admin') {

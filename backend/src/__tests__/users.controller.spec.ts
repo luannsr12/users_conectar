@@ -13,8 +13,12 @@ describe('UsersController', () => {
         {
           provide: UsersService,
           useValue: {
-            findOne: jest.fn().mockResolvedValue({ id: '123', name: 'User' }),
-            update: jest.fn().mockResolvedValue({ id: '123', name: 'Updated' }),
+            findOne: jest.fn().mockImplementation((id: string) =>
+              Promise.resolve({ id, name: id === '123' ? 'User' : 'Unknown' }),
+            ),
+            update: jest.fn().mockImplementation((id: string, dto: any) =>
+              Promise.resolve({ id, name: dto.name }),
+            ),
           },
         },
       ],
@@ -25,15 +29,17 @@ describe('UsersController', () => {
   });
 
   it('should get user profile', async () => {
-    const req = { user: { userId: '123' } };
-    expect(await controller.getMe(req)).toEqual({ id: '123', name: 'User' });
+    const req = { user: { id: '123' } } as any;  // <-- mudou aqui
+    const result = await controller.getMe(req);
+    expect(result).toEqual({ id: '123', name: 'User' });
     expect(service.findOne).toHaveBeenCalledWith('123');
   });
 
   it('should update user profile', async () => {
-    const req = { user: { userId: '123' } };
+    const req = { user: { id: '123' } } as any;  // <-- mudou aqui
     const dto = { name: 'Updated' };
-    expect(await controller.updateMe(req, dto)).toEqual({ id: '123', name: 'Updated' });
+    const result = await controller.updateMe(req, dto);
+    expect(result).toEqual({ id: '123', name: 'Updated' });
     expect(service.update).toHaveBeenCalledWith('123', dto);
   });
 });

@@ -136,7 +136,7 @@ IP_ADDRESS=127.0.0.1 # api.backend.dev ou 127.0.0.1 (ip)
 BACKEND_PORT=3000
 
 FRONTEND_URL=http://localhost:5173
-BACKTEND_URL=http://127.0.0.1:3000
+BACKEND_URL=http://127.0.0.1:3000
 
 # prod ou dev
 MODE=dev

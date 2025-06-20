@@ -4,7 +4,7 @@
 
 -   [Panel Demo live](https://fabulous-laughter-production-e256.up.railway.app)
     -  ✉️ admin@admin.com
-    -  🔑 admin
+    -  🔑 admin123
 -   [API Swagger Docs](https://usersconectar-production.up.railway.app/api)
 
 --- 

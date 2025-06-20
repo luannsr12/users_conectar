@@ -185,7 +185,7 @@ cp .env.example .env && nano .env    # inicia a edição do .env
 
 # endpoint api (backend)
 VITE_API_URL=http://127.0.0.1:3000
-
+VITE_PORT=8080
 ```
 
 ---
@@ -267,14 +267,16 @@ npm run dev
 ```bash
 # start backend
 cd backend
+npm install
+npm run build
 npm run start
 
 
 # start frontend
 cd frontend
+npm install
 npm run build
-npm install -g serve
-serve -s -p 8080 dist # rodando na porta 8080
+npm run start
 
 ```
 >

@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useThemeStore } from "./stores/useThemeStore";
 import { routes } from './routesConfig';
 import AdminProvider from "./contexts/AdminProvider";
@@ -38,15 +38,27 @@ export default function App() {
 function AppContent() {
   const { darkMode } = useThemeStore();
   const { isMobile, toggleIsMobile } = useMockup();
+  const [isRealMobile, setIsRealMobile] = useState(false);
   const location = useLocation();
 
   const isInIframe = isInsideIframe();
+
+
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsRealMobile(window.innerWidth <= 768);
+    };
+
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+    return () => window.removeEventListener('resize', checkIfMobile);
+  }, []);
 
   return (
     <main className={`min-h-screen w-full mx-auto ${darkMode ? "dark" : ""}`}>
       <div className={"mx-auto md:w-[95%] w-[90%]" + (!isMobile ? "" : "")}>
 
-        {!isInIframe && (
+        {!isRealMobile && !isInIframe && (
           <>
             <FloatingButtonProps onClick={toggleIsMobile} />
 

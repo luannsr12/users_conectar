@@ -79,12 +79,12 @@
 │   ├── src
 │   │   ├── assets
 │   │   ├── components
-│   │   ├── contexts
+│   │   ├── pages
 │   │   │   ├── (admin)     (pages admin)
 │   │   │   ├── (auth)      (login and register)
 │   |   |   └── (user)      (profile user)
 │   │   ├── hooks
-│   │   ├── pages
+│   │   ├── contexts
 │   │   ├── stores
 │   │   ├── types
 │   │   └── utils

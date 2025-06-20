@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "npx serve -s dist"
   },
   "dependencies": {
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
@@ -27,6 +28,7 @@
     "react-loading-indicators": "^1.0.1",
     "react-router-dom": "^7.6.2",
     "react-super-responsive-table": "^6.0.2",
+    "serve": "^14.2.4",
     "sweetalert2": "^11.22.0",
     "tailwindcss": "^4.1.10",
     "zustand": "^5.0.5"

@@ -197,7 +197,7 @@ export default function AdminUsers() {
             <Card
                 // Card principal, sem sombra e sem float
                 shadow={false}
-                className="h-full w-full mt-30 card card-table-users"
+                className="max-w-[1100px] mx-auto h-full w-full mt-30 card card-table-users"
             >
                 <CardHeader
                     // CardHeader NÃO usa shadow/floated, só className
